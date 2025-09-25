@@ -6,17 +6,43 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:unit": "echo \"Unit tests not configured yet\"",
+    "validate": "npm run type-check && npm run lint",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@sentry/react-native": "^7.1.0",
     "expo": "~54.0.10",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
-    "react-native": "0.81.4"
+    "react-native": "0.81.4",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@types/react": "~19.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "eslint": "^9.36.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-native": "^5.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.0",
+    "prettier": "^3.6.2",
     "typescript": "~5.9.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "private": true
 }

@@ -1,0 +1,190 @@
+name: CI/CD Pipeline - MacroMuse Architecture Enforcement
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  architectural-validation:
+    runs-on: ubuntu-latest
+    name: 🏗️ Architectural Validation
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: 🔍 TypeScript Strict Check
+      run: npm run type-check
+
+    - name: 🚨 ESLint Architectural Rules (ZERO warnings allowed)
+      run: npm run lint
+
+    - name: 🧱 Check Cross-Store Import Violations
+      run: |
+        echo "Checking for cross-store imports..."
+        if grep -r "import.*\.\./state/" app/ 2>/dev/null; then
+          echo "❌ ARCHITECTURAL VIOLATION: Cross-store imports detected"
+          echo "Use eventBus for cross-store communication"
+          exit 1
+        fi
+        echo "✅ No cross-store import violations found"
+
+    - name: 🎯 Check UI→Domain Direct Import Violations
+      run: |
+        echo "Checking for UI importing domain directly..."
+        if grep -r "import.*domain.*" app/ui/ 2>/dev/null | grep -v "@domain"; then
+          echo "❌ ARCHITECTURAL VIOLATION: UI importing domain directly"
+          echo "Use facades for domain access"
+          exit 1
+        fi
+        echo "✅ No UI→Domain direct import violations found"
+
+    - name: 📏 Check File Size Violations (>400 lines)
+      run: |
+        echo "Checking for files exceeding 400 lines..."
+        violations=$(find app/ -name "*.ts" -o -name "*.tsx" | xargs wc -l | awk '$1 > 400 { print $2 ": " $1 " lines" }')
+        if [ -n "$violations" ]; then
+          echo "❌ ARCHITECTURAL VIOLATION: Files exceeding 400 lines:"
+          echo "$violations"
+          exit 1
+        fi
+        echo "✅ All files within 400 line limit"
+
+    - name: 🧪 Run Unit Tests (when available)
+      run: npm run test:unit || echo "Unit tests not configured yet"
+
+    - name: 📊 Validate Performance Budget Setup
+      run: |
+        echo "Checking performance budget configuration..."
+        if [ -f "app/lib/performance.ts" ]; then
+          echo "✅ Performance budgets configured"
+        else
+          echo "⚠️ Performance budgets not yet configured"
+        fi
+
+  build-validation:
+    runs-on: ubuntu-latest
+    name: 🔨 Build Validation
+    needs: architectural-validation
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: 🏗️ Build with Expo
+      run: npx expo export --platform web
+
+    - name: 📱 Validate React Native Bundle
+      run: |
+        echo "Validating React Native configuration..."
+        if [ -f "metro.config.js" ] || [ -f "metro.config.ts" ]; then
+          echo "✅ Metro config present"
+        else
+          echo "⚠️ Using default Metro config"
+        fi
+
+  security-audit:
+    runs-on: ubuntu-latest
+    name: 🔒 Security Audit
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: 🔐 npm audit
+      run: npm audit --audit-level moderate
+
+    - name: 🗝️ Check for secrets in code
+      run: |
+        echo "Checking for potential secrets..."
+        if grep -r -E "(api_key|apikey|secret|password|token)" app/ --include="*.ts" --include="*.tsx" | grep -v -E "(example|test|mock|placeholder)"; then
+          echo "❌ Potential secrets found in code"
+          echo "Move secrets to environment variables"
+          exit 1
+        fi
+        echo "✅ No hardcoded secrets detected"
+
+  foundation-compliance:
+    runs-on: ubuntu-latest
+    name: 📋 Foundation Document Compliance
+    needs: architectural-validation
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🏛️ Validate Foundation Architecture
+      run: |
+        echo "Validating Foundation document compliance..."
+
+        # Check required directories exist
+        required_dirs=("app/app" "app/ui" "app/domain" "app/infra" "app/data" "app/state" "app/lib" "app/tests")
+        for dir in "${required_dirs[@]}"; do
+          if [ ! -d "$dir" ]; then
+            echo "❌ Required directory missing: $dir"
+            exit 1
+          fi
+        done
+        echo "✅ All required directories present"
+
+        # Check domain models exist
+        if [ ! -f "app/domain/models.ts" ]; then
+          echo "❌ Domain models missing: app/domain/models.ts"
+          exit 1
+        fi
+        echo "✅ Domain models present"
+
+        # Check event bus exists
+        if [ ! -f "app/lib/eventBus.ts" ]; then
+          echo "❌ Event bus missing: app/lib/eventBus.ts"
+          exit 1
+        fi
+        echo "✅ Event bus present"
+
+        # Check feature flags exist
+        if [ ! -f "app/lib/featureFlags.ts" ]; then
+          echo "❌ Feature flags missing: app/lib/featureFlags.ts"
+          exit 1
+        fi
+        echo "✅ Feature flags present"
+
+        # Check stores exist and are properly named
+        stores=("appStore" "dataStore" "uiStore")
+        for store in "${stores[@]}"; do
+          if [ ! -f "app/state/${store}.ts" ]; then
+            echo "❌ Required store missing: app/state/${store}.ts"
+            exit 1
+          fi
+        done
+        echo "✅ All required stores present"
+
+        echo "🎉 Foundation document compliance validated!"

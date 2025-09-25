@@ -1,0 +1,35 @@
+#!/bin/sh
+# Pre-commit hooks from Foundation document - Fail on architectural violations
+
+echo "🔍 Running pre-commit checks..."
+
+# Fail on ESLint violations
+echo "Running ESLint..."
+npm run lint || {
+  echo "❌ ESLint violations detected"
+  exit 1
+}
+
+# Fail on TypeScript errors
+echo "Running TypeScript check..."
+npm run type-check || {
+  echo "❌ TypeScript errors detected"
+  exit 1
+}
+
+# Check for forbidden cross-store import patterns
+echo "Checking for architectural violations..."
+if grep -r "import.*\.\.\/state\/" app/ 2>/dev/null; then
+  echo "❌ Cross-store imports detected"
+  echo "Use eventBus for cross-store communication"
+  exit 1
+fi
+
+if grep -r "import.*domain.*" app/ui/ 2>/dev/null | grep -v "@domain"; then
+  echo "❌ UI importing domain directly detected"
+  echo "Use facades for domain access"
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+npx lint-staged

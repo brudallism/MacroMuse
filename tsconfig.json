@@ -1,6 +1,39 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
-  }
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true,
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["./app/app/*"],
+      "@ui/*": ["./app/ui/*"],
+      "@domain/*": ["./app/domain/*"],
+      "@infra/*": ["./app/infra/*"],
+      "@data/*": ["./app/data/*"],
+      "@state/*": ["./app/state/*"],
+      "@lib/*": ["./app/lib/*"],
+      "@tests/*": ["./app/tests/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
