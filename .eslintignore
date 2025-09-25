@@ -1,0 +1,9 @@
+# ESLint ignore patterns
+node_modules/
+*.config.js
+*.config.ts
+legacy code/
+app/data/migrations/
+.expo/
+dist/
+build/

@@ -18,20 +18,35 @@
     "noImplicitOverride": true,
     "baseUrl": ".",
     "paths": {
-      "@app/*": ["./app/app/*"],
-      "@ui/*": ["./app/ui/*"],
-      "@domain/*": ["./app/domain/*"],
-      "@infra/*": ["./app/infra/*"],
-      "@data/*": ["./app/data/*"],
-      "@state/*": ["./app/state/*"],
-      "@lib/*": ["./app/lib/*"],
-      "@tests/*": ["./app/tests/*"]
+      "@app/*": [
+        "./app/app/*"
+      ],
+      "@ui/*": [
+        "./app/ui/*"
+      ],
+      "@domain/*": [
+        "./app/domain/*"
+      ],
+      "@infra/*": [
+        "./app/infra/*"
+      ],
+      "@data/*": [
+        "./app/data/*"
+      ],
+      "@state/*": [
+        "./app/state/*"
+      ],
+      "@lib/*": [
+        "./app/lib/*"
+      ],
+      "@tests/*": [
+        "./app/tests/*"
+      ]
     }
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts"
+    "**/*.tsx"
   ],
   "exclude": [
     "node_modules"

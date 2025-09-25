@@ -17,6 +17,8 @@ export default [
       '*.js.map',
       '*.d.ts',
       'coverage/**',
+      'legacy code/**',
+      'app/data/migrations/**',
     ],
   },
   js.configs.recommended,
@@ -208,12 +210,14 @@ export default [
   },
   // Logging and infrastructure files - allow console
   {
-    files: ['app/lib/logger.ts', 'app/lib/sentry.ts', 'app/lib/eventBus.ts'],
+    files: ['app/lib/logger.ts', 'app/lib/sentry.ts', 'app/lib/eventBus.ts', 'app/lib/supabase*.ts', 'app/components/Test*.tsx'],
     rules: {
       'no-console': 'off',
       complexity: ['error', { max: 15 }], // Allow higher complexity for logging
       '@typescript-eslint/no-explicit-any': 'off', // Allow any for generic infrastructure
       'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-useless-catch': 'off',
     },
   },
   // Service interfaces - allow unused parameters
