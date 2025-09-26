@@ -11,12 +11,14 @@ import {
   RecognizedFood,
   Goal,
 } from '@domain/models'
+import { DietaryRestrictions } from '@domain/models/dietary'
 
 type EventMap = {
   // User & Auth
   user_authenticated: { userId: string; profile: UserProfile }
   profile_updated: { userId: string; changes: Partial<UserProfile> }
   preferences_changed: { userId: string; key: string; value: unknown }
+  dietary_restrictions_changed: { userId: string; restrictions: DietaryRestrictions }
 
   // Goals & Targets
   macro_targets_calculated: { userId: string; targets: TargetVector; date: string }
@@ -33,6 +35,19 @@ type EventMap = {
   food_search_completed: { query: string; results: FoodSearchResult[]; source: string }
   food_recognized: { input: string; confidence: number; result: RecognizedFood }
   food_data_cached: { foodId: string; source: string; nutrients: NutrientVector }
+
+  // Dietary Filtering Events
+  dietary_filter_applied: {
+    userId: string
+    restrictions: DietaryRestrictions
+    filteredCount: number
+    totalCount: number
+  }
+  dietary_validation_failed: {
+    userId: string
+    restrictions: DietaryRestrictions
+    errors: string[]
+  }
 
   // Analytics & Insights
   analytics_rollup_completed: {

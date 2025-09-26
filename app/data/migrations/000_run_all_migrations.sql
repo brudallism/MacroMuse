@@ -13,6 +13,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \i 005_create_recipe_tables.sql
 \i 006_create_meal_plan_tables.sql
 \i 007_create_rollup_functions.sql
+\i 009_create_dietary_restrictions_table.sql
 
 -- Create a migrations tracking table
 CREATE TABLE IF NOT EXISTS migration_history (
@@ -30,7 +31,8 @@ INSERT INTO migration_history (migration_name, checksum) VALUES
   ('004_create_nutrient_rollup_tables.sql', 'nutrient-rollup-tables-v1'),
   ('005_create_recipe_tables.sql', 'recipe-tables-v1'),
   ('006_create_meal_plan_tables.sql', 'meal-plan-tables-v1'),
-  ('007_create_rollup_functions.sql', 'rollup-functions-v1')
+  ('007_create_rollup_functions.sql', 'rollup-functions-v1'),
+  ('009_create_dietary_restrictions_table.sql', 'dietary-restrictions-v1')
 ON CONFLICT (migration_name) DO UPDATE SET
   executed_at = EXCLUDED.executed_at,
   checksum = EXCLUDED.checksum;
@@ -85,7 +87,7 @@ BEGIN
       'profile', 'goal_base', 'goal_weekly_cycle', 'goal_menstrual',
       'intake_log', 'daily_total', 'nutrient_daily', 'nutrient_weekly', 'nutrient_monthly',
       'recipe', 'recipe_ingredient', 'recipe_nutrient',
-      'meal_plan', 'meal_plan_item', 'migration_history'
+      'meal_plan', 'meal_plan_item', 'migration_history', 'dietary_restrictions'
     );
 
   -- Count created functions
@@ -102,8 +104,8 @@ BEGIN
   RAISE NOTICE '- Tables created: %', table_count;
   RAISE NOTICE '- Functions created: %', function_count;
 
-  IF table_count < 15 THEN
-    RAISE WARNING 'Expected at least 15 tables, only found %', table_count;
+  IF table_count < 16 THEN
+    RAISE WARNING 'Expected at least 16 tables, only found %', table_count;
   END IF;
 
   IF function_count < 5 THEN
