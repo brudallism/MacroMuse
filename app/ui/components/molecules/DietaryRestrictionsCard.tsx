@@ -3,9 +3,11 @@
 
 import React from 'react'
 import { View, ViewStyle } from 'react-native'
+
 import { useTheme } from '@ui/theme/ThemeProvider'
-import { Text } from '@ui/components/atoms/Text'
-import { Card } from './Card'
+import { Text } from '@ui/atoms/Text'
+
+import { Card } from '@ui/atoms/Card'
 
 // Inline types to avoid domain imports (Foundation requirement)
 type DietType = 'vegan' | 'vegetarian' | 'pescatarian' | 'ketogenic' | 'paleo' | 'primal' | 'low-fodmap' | 'whole30' | 'none'

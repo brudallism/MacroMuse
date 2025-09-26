@@ -1,13 +1,16 @@
 // services/DietaryIntegrationService.ts - Event bus integration for dietary system
 // Foundation compliant - pure functions with event-driven architecture
 
-import { eventBus } from '@lib/eventBus'
-import { useAppStore } from '@state/appStore'
-import { useDataStore } from '@state/dataStore'
 import { checkDietaryCompliance, filterFoodsByDiet } from '@domain/services/DietaryFilterService'
-import { buildSpoonacularQuery, validateRestrictionsForQuery } from '@infra/adapters/SpoonacularAdapter'
 import type { DietaryRestrictions } from '@domain/models/dietary'
 import type { FoodSearchResult } from '@domain/models'
+
+import { buildSpoonacularQuery, validateRestrictionsForQuery } from '@infra/adapters/SpoonacularAdapter'
+
+import { useDataStore } from '@state/dataStore'
+import { useAppStore } from '@state/appStore'
+
+import { eventBus } from '@lib/eventBus'
 
 /**
  * Service to wire dietary restrictions with existing food search and caching

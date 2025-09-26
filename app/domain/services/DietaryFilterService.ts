@@ -8,6 +8,7 @@ import type {
   SpoonacularQuery
 } from '@domain/models/dietary'
 import type { NutrientVector } from '@domain/models/nutrients'
+
 import {
   getDietExclusions,
   getAllergenExclusions,

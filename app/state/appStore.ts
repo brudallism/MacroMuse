@@ -3,6 +3,7 @@ import { create } from 'zustand'
 
 import { UserProfile } from '@domain/models'
 import { DietaryRestrictions } from '@domain/models/dietary'
+
 import { eventBus } from '@lib/eventBus'
 
 interface AppState {

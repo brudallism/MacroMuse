@@ -34,7 +34,13 @@ type EventMap = {
   // Food Search & Recognition
   food_search_completed: { query: string; results: FoodSearchResult[]; source: string }
   food_recognized: { input: string; confidence: number; result: RecognizedFood }
-  food_data_cached: { foodId: string; source: string; nutrients: NutrientVector }
+  food_data_cached: { foodId: string; source: string; nutrients?: NutrientVector; cacheSize?: number }
+
+  // Advanced Food Features
+  user_activity_tracked: { userId: string; activity: string; metadata: Record<string, unknown> }
+  food_logged: { userId: string; foodId: string; foodName: string; mealType: string; calories: number; loggedAt: string }
+  user_preferences_updated: { userId: string; type: string; preferences: Record<string, unknown> }
+  cache_cleared: { scope: string; userId: string }
 
   // Dietary Filtering Events
   dietary_filter_applied: {

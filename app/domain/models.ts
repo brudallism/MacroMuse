@@ -95,12 +95,16 @@ export type Goal = {
 export type FoodSearchResult = {
   id: string
   name: string
-  source: 'usda' | 'spoonacular' | 'custom'
+  source: 'usda' | 'spoonacular' | 'barcode' | 'custom'
   nutrients: NutrientVector
   servingSize: {
     amount: number
     unit: string
   }
+  confidence?: number
+  brand?: string
+  ingredients?: string
+  allergens?: string
 }
 
 export type RecognizedFood = {
@@ -128,4 +132,63 @@ export type MicronutrientRow = {
   target: number
   unit: string
   priority: 'high' | 'medium' | 'low'
+}
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+
+export type FoodItem = {
+  id: string
+  name: string
+  brand?: string
+  source: 'usda' | 'spoonacular' | 'barcode' | 'custom'
+  nutrients: NutrientVector
+  servingSize: {
+    amount: number
+    unit: string
+  }
+  lastUsed?: string
+  usageCount?: number
+  isFavorite?: boolean
+  isCustom?: boolean
+  createdBy?: string
+  ingredients?: string
+  allergens?: string
+}
+
+export type RecentFoodEntry = {
+  food: FoodItem
+  lastUsed: string
+  usageCount: number
+  userId: string
+}
+
+export type FavoriteFood = {
+  food: FoodItem
+  addedAt: string
+  userId: string
+  category?: string
+}
+
+export type CustomFood = {
+  id: string
+  name: string
+  brand?: string
+  nutrients: NutrientVector
+  servingSize: {
+    amount: number
+    unit: string
+  }
+  createdBy: string
+  createdAt: string
+  isPublic?: boolean
+  description?: string
+  ingredients?: string
+  allergens?: string
+}
+
+export type MealTimePreferences = {
+  breakfast: { start: string; end: string }
+  lunch: { start: string; end: string }
+  dinner: { start: string; end: string }
+  snack: { flexible: boolean }
 }
