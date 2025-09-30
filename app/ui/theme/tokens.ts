@@ -255,8 +255,15 @@ export const getThemeColors = (isDark: boolean) => {
   return {
     ...baseColors,
     background: isDark ? baseColors.background.dark : baseColors.background.light,
-    // Provide flat color access for easier usage
-    text: isDark ? baseColors.text.inverse : baseColors.text.primary,
+    // Maintain nested text structure to fix property configuration error
+    text: {
+      primary: isDark ? baseColors.text.inverse : baseColors.text.primary,
+      secondary: isDark ? baseColors.gray[300] : baseColors.text.secondary,
+      tertiary: baseColors.text.tertiary,
+      inverse: isDark ? baseColors.text.primary : baseColors.text.inverse,
+    },
+    // Keep flat access for compatibility
+    textPrimary: isDark ? baseColors.text.inverse : baseColors.text.primary,
     textSecondary: isDark ? baseColors.gray[300] : baseColors.text.secondary,
     primary: baseColors.primary[500],
     secondary: baseColors.secondary[500],

@@ -1,7 +1,7 @@
 // state/dataStore.ts - entities & caches (NO cross-store imports)
 import { create } from 'zustand'
 
-import { LogEntry, NutrientVector, Insight, FoodSearchResult } from '@domain/models'
+import { LogEntry, NutrientVector, Insight, FoodSearchResult, RecentFoodEntry } from '@domain/models'
 
 import { eventBus } from '@lib/eventBus'
 
@@ -11,6 +11,7 @@ interface DataState {
   dailyTotals: Record<string, NutrientVector> // date -> totals
   foodSearchResults: FoodSearchResult[]
   insights: Insight[]
+  recentFoods: Record<string, RecentFoodEntry[]> // userId -> recent foods
 
   // Cache state
   lastSearchQuery: string | null
@@ -25,6 +26,11 @@ interface DataState {
   setInsights: (insights: Insight[]) => void
   optimisticallyAddEntry: (entry: LogEntry) => void
   clearCache: () => void
+
+  // Recent Foods Actions
+  getRecentFoods: (userId: string) => Promise<RecentFoodEntry[]>
+  saveRecentFoods: (userId: string, entries: RecentFoodEntry[]) => Promise<void>
+  clearRecentFoods: (userId: string) => Promise<void>
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
@@ -33,6 +39,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   dailyTotals: {},
   foodSearchResults: [],
   insights: [],
+  recentFoods: {},
   lastSearchQuery: null,
   lastSearchTimestamp: null,
 
@@ -112,6 +119,40 @@ export const useDataStore = create<DataState>((set, get) => ({
       foodSearchResults: [],
       lastSearchQuery: null,
       lastSearchTimestamp: null,
+    })
+  },
+
+  // Recent Foods Methods
+  getRecentFoods: async (userId): Promise<RecentFoodEntry[]> => {
+    const currentRecentFoods = get().recentFoods
+    return currentRecentFoods[userId] || []
+  },
+
+  saveRecentFoods: async (userId, entries): Promise<void> => {
+    const currentRecentFoods = get().recentFoods
+    set({
+      recentFoods: {
+        ...currentRecentFoods,
+        [userId]: entries
+      }
+    })
+
+    eventBus.emit('user_activity_tracked', {
+      userId,
+      activity: 'recent_foods_updated',
+      metadata: { entryCount: entries.length }
+    })
+  },
+
+  clearRecentFoods: async (userId): Promise<void> => {
+    const currentRecentFoods = get().recentFoods
+    const { [userId]: removed, ...remaining } = currentRecentFoods
+    set({ recentFoods: remaining })
+
+    eventBus.emit('user_activity_tracked', {
+      userId,
+      activity: 'recent_foods_cleared',
+      metadata: {}
     })
   },
 }))

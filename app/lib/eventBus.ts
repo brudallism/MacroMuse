@@ -10,6 +10,10 @@ import {
   FoodSearchResult,
   RecognizedFood,
   Goal,
+  RecipeData,
+  WeeklyMealPlan,
+  PlannedMeal,
+  ShoppingItem,
 } from '@domain/models'
 import { DietaryRestrictions } from '@domain/models/dietary'
 
@@ -62,7 +66,40 @@ type EventMap = {
     date: string
   }
   insights_generated: { userId: string; insights: Insight[] }
-  trend_analysis_updated: { userId: string; trends: TrendData }
+  trend_analysis_updated: { userId: string; trends: TrendData[] }
+
+  // Goal Management & Progress
+  goal_adherence_calculated: { userId: string; date: string; adherence: number }
+  streak_milestone_reached: { userId: string; nutrient: string; days: number; type: string }
+  goal_recommendation_generated: { userId: string; recommendations: Array<{ nutrient: string; type: string; confidence: number }> }
+  progress_celebration_triggered: { userId: string; achievement: string; data: Record<string, unknown> }
+
+  // Pattern Detection Events
+  eating_pattern_detected: { userId: string; pattern: string; confidence: number; data: Record<string, unknown> }
+  nutrient_deficiency_alert: { userId: string; nutrient: string; severity: 'low' | 'medium' | 'high'; streakDays: number }
+  macro_imbalance_detected: { userId: string; imbalance: Record<string, number>; recommendations: string[] }
+
+  // Recipe Events
+  recipe_created: { userId: string; recipeId: string; name: string }
+  recipe_updated: { userId: string; recipeId: string; changes: Partial<RecipeData> }
+  recipe_deleted: { userId: string; recipeId: string; name: string }
+  recipe_imported: { userId: string; recipeId: string; source: 'spoonacular'; sourceId: string }
+  recipe_scaled: { recipeId: string; fromServings: number; toServings: number }
+  recipe_nutrition_calculated: { recipeId: string; nutrients: NutrientVector }
+  recipe_duplicated: { sourceRecipeId: string; newRecipeId: string; userId: string }
+
+  // Meal Planning Events
+  meal_plan_created: { userId: string; planId: string; startDate: string }
+  meal_plan_updated: { planId: string; updates: Partial<WeeklyMealPlan> }
+  meal_plan_deleted: { planId: string; userId: string }
+  meal_plan_duplicated: { sourcePlanId: string; newPlanId: string; userId: string; newStartDate: string }
+  meal_added_to_plan: { planId: string; day: number; mealType: string; meal: PlannedMeal }
+  meal_removed_from_plan: { planId: string; mealId: string }
+  meal_moved_in_plan: { planId: string; mealId: string; targetDay: number; targetMealType: string }
+  plan_applied: { planId: string; userId: string; entriesCount: number }
+  plan_application_progress: { planId: string; userId: string; appliedCount: number; totalCount: number; progress: number }
+  plan_application_failed: { planId: string; userId: string; error: string }
+  shopping_list_generated: { planId: string; itemCount: number }
 
   // System Events
   performance_budget_exceeded: { operation: string; actualMs: number; budgetMs: number }
@@ -70,7 +107,6 @@ type EventMap = {
 
   // Legacy events
   goal_updated: { date: string }
-  plan_applied: { planId: string }
 }
 
 type EventListener<T> = (_data: T) => void | Promise<void>

@@ -120,7 +120,7 @@ export class BarcodeFacade {
 
     try {
       // Try searching for the barcode as a product name/identifier
-      const searchResults = await searchFacade.searchFoods(barcode, sessionId)
+      const searchResults = await searchFacade.searchFoods(barcode, 'usda', sessionId)
 
       // Update session to track fallback usage
       if (sessionId && this.activeSessions.has(sessionId)) {

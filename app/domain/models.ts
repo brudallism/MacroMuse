@@ -192,3 +192,83 @@ export type MealTimePreferences = {
   dinner: { start: string; end: string }
   snack: { flexible: boolean }
 }
+
+// Recipe Management Types
+export type RecipeData = {
+  id?: string
+  name: string
+  description?: string
+  servings: number
+  prepTime?: number
+  cookTime?: number
+  difficulty?: 'easy' | 'medium' | 'hard'
+  ingredients: RecipeIngredient[]
+  instructions: RecipeStep[]
+  tags: string[]
+  nutrients: NutrientVector
+  imageUrl?: string
+  source?: 'spoonacular' | 'custom'
+  sourceId?: string
+  userId: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type RecipeIngredient = {
+  id?: string
+  foodId?: string
+  name: string
+  amount: number
+  unit: string
+  nutrients: NutrientVector
+  orderIndex?: number
+}
+
+export type RecipeStep = {
+  id?: string
+  order: number
+  instruction: string
+  duration?: number
+}
+
+// Meal Planning Types
+export type WeeklyMealPlan = {
+  id: string
+  userId: string
+  startDate: string // ISO date
+  endDate: string
+  days: DayMealPlan[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type DayMealPlan = {
+  date: string
+  meals: {
+    breakfast: PlannedMeal[]
+    lunch: PlannedMeal[]
+    dinner: PlannedMeal[]
+    snacks: PlannedMeal[]
+  }
+  targetNutrients: TargetVector
+  plannedNutrients: NutrientVector
+}
+
+export type PlannedMeal = {
+  id: string
+  type: 'food' | 'recipe'
+  foodId?: string
+  recipeId?: string
+  name: string
+  servings: number
+  unit: string
+  nutrients: NutrientVector
+}
+
+export type ShoppingItem = {
+  name: string
+  amount: number
+  unit: string
+  category?: string
+  recipeNames?: string[]
+}

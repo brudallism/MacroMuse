@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { View } from 'react-native'
+import { View, Text } from 'react-native'
 
 import { FEATURES } from '@lib/featureFlags'
 import { logger } from '@lib/logger'
@@ -11,13 +11,14 @@ export default function App(): React.JSX.Element {
   useEffect(() => {
     // Initialize store event system on app startup
     initializeStoreEventSystem()
-    logger.info('MacroMuse app started', {
+    logger.info('MacroMuse app started - testing feature flags', {
       features: {
         analytics: FEATURES.ADVANCED_ANALYTICS.enabled,
-        barcode: FEATURES.BARCODE.enabled,
-        ai: FEATURES.AI_ASSISTANT.enabled
+        barcode: FEATURES.BARCODE_SCANNING.enabled,
+        ai: FEATURES.AI_SUGGESTIONS.enabled
       }
     })
+    console.log('MacroMuse app started - minimal version')
   }, [])
 
   return (

@@ -4,6 +4,7 @@ import { LogRepository } from '../../infra/repositories/LogRepository'
 
 export interface LedgerService {
   add(entry: LogEntry): Promise<void> // idempotent
+  addBatch(entries: LogEntry[]): Promise<void> // batch operation for meal plans
   remove(id: string): Promise<void>
   getEntriesForDate(userId: string, dateISO: string): Promise<LogEntry[]>
 }
@@ -16,6 +17,17 @@ export class LedgerServiceImpl implements LedgerService {
     // Emit meal_logged event
     // Trigger daily totals recalculation
     await this.logRepository.create(entry)
+  }
+
+  async addBatch(entries: LogEntry[]): Promise<void> {
+    // Batch operation for meal plan application
+    // Process in smaller chunks to avoid overwhelming the database
+    const chunkSize = 10
+
+    for (let i = 0; i < entries.length; i += chunkSize) {
+      const chunk = entries.slice(i, i + chunkSize)
+      await Promise.all(chunk.map(entry => this.add(entry)))
+    }
   }
 
   async remove(id: string): Promise<void> {
