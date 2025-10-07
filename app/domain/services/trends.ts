@@ -1,5 +1,6 @@
 // domain/services/trends.ts - Trend analysis and progress tracking following Foundation.md
 import { NutrientVector, TrendData, TargetVector } from '@domain/models'
+
 import { trackOperation } from '@lib/performance'
 
 export interface TrendAnalysisService {

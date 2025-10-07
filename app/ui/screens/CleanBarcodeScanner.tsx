@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react'
 import { View, StyleSheet, Alert, Vibration } from 'react-native'
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera'
+import { cleanBarcodeFacade } from '@facades/cleanBarcodeFacade'
+
 import { Text } from '@ui/atoms/Text'
 import { Button } from '@ui/atoms/Button'
 import { useTheme } from '@ui/theme/ThemeProvider'
-import { cleanBarcodeFacade } from '@facades/cleanBarcodeFacade'
+
 import { logger } from '@lib/logger'
 
 interface CleanBarcodeScannerProps {

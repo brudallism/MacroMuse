@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
+import { searchFacade } from '@facades/searchFacade'
+
 import { TabView } from '@ui/molecules/TabView'
 import { SeparatedFoodSearch } from '@ui/screens/SeparatedFoodSearch'
 // import { BarcodeFlow } from '@ui/screens/BarcodeFlow' // Complex facades causing issues
@@ -9,9 +11,9 @@ import { CleanBarcodeScanner } from '@ui/screens/CleanBarcodeScanner'
 import { SimpleDashboard } from '@ui/screens/SimpleDashboard'
 import { PlaygroundScreen } from '@ui/screens/PlaygroundScreen'
 import { useTheme } from '@ui/theme/ThemeProvider'
-import { logger } from '@lib/logger'
 import { Text } from '@ui/atoms/Text'
-import { searchFacade } from '@facades/searchFacade'
+
+import { logger } from '@lib/logger'
 // import { advancedFoodFacade } from '@facades/advancedFoodFacade' // Testing: disabled to isolate error
 
 type Screen = 'dashboard' | 'search' | 'barcode' | 'profile' | 'playground'

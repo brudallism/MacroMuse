@@ -2,9 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { advancedFoodFacade } from '@facades/advancedFoodFacade'
 import { searchFacade } from '@facades/searchFacade'
 import { barcodeFacade } from '@facades/barcodeFacade'
-import { eventBus } from '@lib/eventBus'
+
 import { FoodItem, LogEntry, MealType, NutrientVector } from '@domain/models'
 import { CustomFoodData } from '@domain/services/customFoods'
+
+import { initializeApp } from '@infra/initialization'
+
+import { eventBus } from '@lib/eventBus'
+
+// Initialize services for testing
 
 // Mock data store and external dependencies
 jest.mock('@state/dataStore')
@@ -20,6 +26,9 @@ describe('Advanced Food Features Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     eventBus.removeAllListeners()
+
+    // Initialize app with mocked dependencies before each test
+    initializeApp()
 
     // Mock food data
     mockFoods = [

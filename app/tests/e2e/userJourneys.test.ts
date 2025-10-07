@@ -1,4 +1,5 @@
 import { device, element, by, waitFor, expect } from 'detox'
+
 import { PERFORMANCE_BUDGETS } from '../../lib/performance'
 
 describe('Complete User Journeys - Day 14 Final Testing', () => {

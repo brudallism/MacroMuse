@@ -1,6 +1,7 @@
 // ui/components/LazyLoader.tsx - Feature-based code splitting with performance tracking
 import React, { Suspense, lazy, useState, useEffect } from 'react'
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
+
 import { performanceMonitor } from '@lib/performance'
 import { logger } from '@lib/logger'
 import { FEATURES } from '@lib/featureFlags'

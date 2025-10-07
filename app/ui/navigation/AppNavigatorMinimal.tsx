@@ -2,12 +2,13 @@ import React, { useState } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
+import { searchFacade } from '@facades/searchFacade'
+import { advancedFoodFacade } from '@facades/advancedFoodFacade'
+
 import { useTheme } from '@ui/theme/ThemeProvider'
 import { TabView } from '@ui/molecules/TabView'
 import { SimpleDashboard } from '@ui/screens/SimpleDashboard'
 import { SeparatedFoodSearch } from '@ui/screens/SeparatedFoodSearch'
-import { searchFacade } from '@facades/searchFacade'
-import { advancedFoodFacade } from '@facades/advancedFoodFacade'
 
 const tabs = [
   { key: 'test', title: 'Test', icon: 'home' },

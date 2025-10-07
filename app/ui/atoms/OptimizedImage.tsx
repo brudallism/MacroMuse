@@ -1,6 +1,7 @@
 // ui/atoms/OptimizedImage.tsx - Production-optimized image component with lazy loading
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { View, Image, ActivityIndicator, Text, StyleSheet, ViewStyle, ImageStyle } from 'react-native'
+
 import { performanceMonitor } from '@lib/performance'
 import { logger } from '@lib/logger'
 

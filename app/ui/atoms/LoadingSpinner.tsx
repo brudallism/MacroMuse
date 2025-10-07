@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, ActivityIndicator, StyleSheet, ViewStyle } from 'react-native'
+
 import { useTheme } from '@ui/theme/ThemeProvider'
 
 export interface LoadingSpinnerProps {

@@ -1,5 +1,7 @@
 import { CustomFood, FoodItem, NutrientVector } from '@domain/models'
-import { supabase } from '@infra/database/supabase'
+
+import { CustomFoodsRepository, CustomFoodData } from '@infra/repositories/CustomFoodsRepository'
+
 import { eventBus } from '@lib/eventBus'
 import { logger } from '@lib/logger'
 
@@ -10,20 +12,6 @@ export interface CustomFoodsService {
   getCustomFoods(userId: string): Promise<FoodItem[]>
   getCustomFood(userId: string, foodId: string): Promise<FoodItem | null>
   validateNutrients(nutrients: Partial<NutrientVector>): ValidationResult
-}
-
-export interface CustomFoodData {
-  name: string
-  brand?: string
-  nutrients: Partial<NutrientVector>
-  servingSize: {
-    amount: number
-    unit: string
-  }
-  description?: string
-  ingredients?: string
-  allergens?: string
-  isPublic?: boolean
 }
 
 export interface ValidationResult {
@@ -38,8 +26,6 @@ interface NutrientValidation {
   required?: boolean
   unit: string
 }
-
-const CUSTOM_FOODS_TABLE = 'custom_foods'
 
 // Validation rules for nutrients
 const NUTRIENT_VALIDATION: Record<string, NutrientValidation> = {
@@ -63,6 +49,8 @@ const NUTRIENT_VALIDATION: Record<string, NutrientValidation> = {
 export class CustomFoodsServiceImpl implements CustomFoodsService {
   private cache = new Map<string, FoodItem[]>()
 
+  constructor(private repository: CustomFoodsRepository) {}
+
   async createCustomFood(userId: string, data: CustomFoodData): Promise<FoodItem> {
     try {
       // Validate input data
@@ -71,48 +59,13 @@ export class CustomFoodsServiceImpl implements CustomFoodsService {
         throw new Error(`Validation failed: ${validation.errors.join(', ')}`)
       }
 
-      const foodId = `custom_${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      const now = new Date().toISOString()
-
       // Normalize nutrients to per-100g basis
-      const normalizedNutrients = this.normalizeNutrients(data.nutrients, data.servingSize.amount)
-
-      const customFoodRecord = {
-        id: foodId,
-        user_id: userId,
-        name: data.name.trim(),
-        brand: data.brand?.trim(),
-        nutrients: normalizedNutrients,
-        serving_size: data.servingSize,
-        description: data.description?.trim(),
-        ingredients: data.ingredients?.trim(),
-        allergens: data.allergens?.trim(),
-        is_public: data.isPublic || false,
-        created_at: now,
-        updated_at: now
+      const normalizedData = {
+        ...data,
+        nutrients: this.normalizeNutrients(data.nutrients, data.servingSize.amount)
       }
 
-      const { error } = await supabase
-        .from(CUSTOM_FOODS_TABLE)
-        .insert([customFoodRecord])
-
-      if (error) {
-        throw new Error(`Failed to create custom food: ${error.message}`)
-      }
-
-      // Create FoodItem
-      const foodItem: FoodItem = {
-        id: foodId,
-        name: data.name.trim(),
-        brand: data.brand?.trim(),
-        source: 'custom',
-        nutrients: normalizedNutrients,
-        servingSize: data.servingSize,
-        isCustom: true,
-        createdBy: userId,
-        ingredients: data.ingredients?.trim(),
-        allergens: data.allergens?.trim()
-      }
+      const foodItem = await this.repository.create(userId, normalizedData)
 
       // Update cache
       const userCustomFoods = this.cache.get(userId) || []
@@ -121,14 +74,14 @@ export class CustomFoodsServiceImpl implements CustomFoodsService {
 
       // Emit event
       eventBus.emit('food_data_cached', {
-        foodId: foodId,
+        foodId: foodItem.id,
         source: 'custom_food_created',
         cacheSize: userCustomFoods.length
       })
 
       logger.info('Created custom food', {
         userId,
-        foodId,
+        foodId: foodItem.id,
         foodName: data.name,
         isPublic: data.isPublic
       })
@@ -163,35 +116,13 @@ export class CustomFoodsServiceImpl implements CustomFoodsService {
         }
       }
 
-      const updateData: Record<string, any> = {
-        updated_at: new Date().toISOString()
-      }
-
-      if (data.name) updateData.name = data.name.trim()
-      if (data.brand !== undefined) updateData.brand = data.brand?.trim()
-      if (data.description !== undefined) updateData.description = data.description?.trim()
-      if (data.ingredients !== undefined) updateData.ingredients = data.ingredients?.trim()
-      if (data.allergens !== undefined) updateData.allergens = data.allergens?.trim()
-      if (data.isPublic !== undefined) updateData.is_public = data.isPublic
-
+      // Normalize nutrients if provided
+      const updateData = { ...data }
       if (data.nutrients && data.servingSize) {
         updateData.nutrients = this.normalizeNutrients(data.nutrients, data.servingSize.amount)
-        updateData.serving_size = data.servingSize
-      } else if (data.nutrients) {
-        updateData.nutrients = { ...existingFood.nutrients, ...data.nutrients }
-      } else if (data.servingSize) {
-        updateData.serving_size = data.servingSize
       }
 
-      const { error } = await supabase
-        .from(CUSTOM_FOODS_TABLE)
-        .update(updateData)
-        .eq('id', foodId)
-        .eq('user_id', userId)
-
-      if (error) {
-        throw new Error(`Failed to update custom food: ${error.message}`)
-      }
+      await this.repository.update(userId, foodId, updateData)
 
       // Clear cache to force reload
       this.cache.delete(userId)
@@ -206,15 +137,7 @@ export class CustomFoodsServiceImpl implements CustomFoodsService {
 
   async deleteCustomFood(userId: string, foodId: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from(CUSTOM_FOODS_TABLE)
-        .delete()
-        .eq('id', foodId)
-        .eq('user_id', userId)
-
-      if (error) {
-        throw new Error(`Failed to delete custom food: ${error.message}`)
-      }
+      await this.repository.delete(userId, foodId)
 
       // Update cache
       const userCustomFoods = this.cache.get(userId) || []
@@ -234,29 +157,7 @@ export class CustomFoodsServiceImpl implements CustomFoodsService {
       let customFoods = this.cache.get(userId)
 
       if (!customFoods) {
-        const { data, error } = await supabase
-          .from(CUSTOM_FOODS_TABLE)
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false })
-
-        if (error) {
-          throw new Error(`Failed to fetch custom foods: ${error.message}`)
-        }
-
-        customFoods = (data || []).map(row => ({
-          id: row.id,
-          name: row.name,
-          brand: row.brand,
-          source: 'custom' as const,
-          nutrients: row.nutrients,
-          servingSize: row.serving_size,
-          isCustom: true,
-          createdBy: row.user_id,
-          ingredients: row.ingredients,
-          allergens: row.allergens
-        }))
-
+        customFoods = await this.repository.getByUser(userId)
         this.cache.set(userId, customFoods)
       }
 
@@ -415,5 +316,9 @@ export class CustomFoodsServiceImpl implements CustomFoodsService {
   }
 }
 
-// Singleton instance
-export const customFoodsService = new CustomFoodsServiceImpl()
+// Singleton instance - will be initialized with repository in app setup
+export let customFoodsService: CustomFoodsService
+
+export function initializeCustomFoodsService(repository: CustomFoodsRepository): void {
+  customFoodsService = new CustomFoodsServiceImpl(repository)
+}

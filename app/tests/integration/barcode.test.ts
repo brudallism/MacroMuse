@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
-import { BarcodeAdapter, BarcodeProduct } from '@infra/adapters/barcode'
 import { BarcodeFacade, createBarcodeFacade } from '@facades/barcodeFacade'
-import { eventBus } from '@lib/eventBus'
+
 import { NutrientVector } from '@domain/models'
+
+import { BarcodeAdapter, BarcodeProduct } from '@infra/adapters/barcode'
+
+import { eventBus } from '@lib/eventBus'
+
 
 // Mock fetch globally
 global.fetch = jest.fn()

@@ -290,7 +290,7 @@ export class MealPlanningFacade {
 
       // Calculate daily nutrition totals
       const daily: Record<string, import('../domain/models').NutrientVector> = {}
-      let weeklyTotals: import('../domain/models').NutrientVector = {}
+      const weeklyTotals: import('../domain/models').NutrientVector = {}
 
       plan.days.forEach(day => {
         const dayTotals = this.calculateDayNutrients(day)

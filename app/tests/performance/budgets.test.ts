@@ -1,10 +1,12 @@
 // tests/performance/budgets.test.ts - Performance budget enforcement tests
-import { performanceMonitor, PERFORMANCE_BUDGETS, assertPerformanceBudget } from '@lib/performance'
 import { searchFacade } from '@facades/SearchFacade'
 import { ledgerFacade } from '@facades/LedgerFacade'
+
 import { analyticsService } from '@domain/services/analytics'
 import { recipeService } from '@domain/services/recipes'
 import { planService } from '@domain/services/plans'
+
+import { performanceMonitor, PERFORMANCE_BUDGETS, assertPerformanceBudget } from '@lib/performance'
 
 describe('Performance Budget Enforcement', () => {
   beforeEach(() => {

@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
+
 import { Text } from '@ui/atoms/Text'
 import { Button } from '@ui/atoms/Button'
 import { SearchInput } from '@ui/atoms/SearchInput'

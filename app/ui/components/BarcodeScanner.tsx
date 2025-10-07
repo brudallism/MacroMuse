@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { View, Text, StyleSheet, Alert, Platform } from 'react-native'
 import { Camera, CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera'
+
 import { Button } from '@ui/atoms/Button'
 import { Card } from '@ui/atoms/Card'
 import { useTheme } from '@ui/theme/ThemeProvider'
+
 import { logger } from '@lib/logger'
 
 export interface BarcodeScannerProps {

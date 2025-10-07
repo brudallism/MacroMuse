@@ -6,7 +6,6 @@ import { View, ViewStyle } from 'react-native'
 
 import { useTheme } from '@ui/theme/ThemeProvider'
 import { Text } from '@ui/atoms/Text'
-
 import { Card } from '@ui/atoms/Card'
 
 // Inline types to avoid domain imports (Foundation requirement)

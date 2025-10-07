@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, memo } from 'react'
 import { View, StyleSheet, ListRenderItem, ViewToken } from 'react-native'
 import { FlashList } from '@shopify/flash-list'
+
 import { FoodCard } from '@ui/molecules/FoodCard'
 import { LoadingSpinner } from '@ui/atoms/LoadingSpinner'
 import { Text } from '@ui/atoms/Text'

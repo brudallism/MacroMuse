@@ -1,6 +1,7 @@
 // MealLoggingFacade.ts - UI controller for meal logging operations
 import { LedgerServiceImpl } from '../domain/services/ledger'
-import { LogEntry, NutrientVector } from '../domain/models'
+import { LogEntry, NutrientVector, Recipe } from '../domain/models'
+import { portionCalculatorService } from '../domain/services/portionCalculator'
 import { trackOperation } from '../lib/performance'
 import { eventBus } from '../lib/eventBus'
 
@@ -171,6 +172,102 @@ export class MealLoggingFacade {
       serving_unit: food.serving_unit,
       nutrients: adjustedNutrients,
       created_at: new Date().toISOString(),
+    }
+  }
+
+  // Log recipe with portion selection (servings, grams, oz)
+  async logRecipe(
+    userId: string,
+    recipe: Recipe,
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+    portionAmount: number,
+    portionUnit: string
+  ): Promise<{ success: boolean; error?: string }> {
+    return await trackOperation('recipe_log', async () => {
+      try {
+        // Calculate nutrients based on portion
+        const scaledNutrients = portionCalculatorService.calculateRecipeNutrients(
+          recipe,
+          portionAmount,
+          portionUnit
+        )
+
+        // Create log entry for recipe
+        const entry: LogEntry = {
+          id: `${userId}_${Date.now()}_${Math.random()}`,
+          userId,
+          loggedAt: new Date().toISOString(),
+          source: recipe.source || 'spoonacular',
+          sourceId: recipe.sourceId || recipe.id,
+          qty: portionAmount,
+          unit: portionUnit,
+          nutrients: scaledNutrients,
+          mealLabel: mealType,
+          recipeId: recipe.id,
+          itemType: 'recipe',
+          name: recipe.name
+        }
+
+        // Optimistic update
+        eventBus.emit('meal_logging_started', {
+          userId,
+          entry,
+          timestamp: new Date().toISOString()
+        })
+
+        await this.ledgerService.add(entry)
+
+        // Success
+        eventBus.emit('meal_logging_completed', {
+          userId,
+          entry,
+          success: true,
+          timestamp: new Date().toISOString()
+        })
+
+        return { success: true }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to log recipe'
+
+        eventBus.emit('meal_logging_completed', {
+          userId,
+          success: false,
+          error: errorMessage,
+          timestamp: new Date().toISOString()
+        })
+
+        return { success: false, error: errorMessage }
+      }
+    })
+  }
+
+  // Create recipe log entry helper (if needed for preview/basket)
+  createRecipeLogEntry(
+    userId: string,
+    recipe: Recipe,
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+    portionAmount: number,
+    portionUnit: string
+  ): LogEntry {
+    const scaledNutrients = portionCalculatorService.calculateRecipeNutrients(
+      recipe,
+      portionAmount,
+      portionUnit
+    )
+
+    return {
+      id: `${userId}_${Date.now()}_${Math.random()}`,
+      userId,
+      loggedAt: new Date().toISOString(),
+      source: recipe.source || 'spoonacular',
+      sourceId: recipe.sourceId || recipe.id,
+      qty: portionAmount,
+      unit: portionUnit,
+      nutrients: scaledNutrients,
+      mealLabel: mealType,
+      recipeId: recipe.id,
+      itemType: 'recipe',
+      name: recipe.name
     }
   }
 

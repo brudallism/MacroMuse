@@ -1,7 +1,9 @@
 // infra/database/connectionPool.ts - Optimized Supabase client with connection management
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+
 import { logger } from '@lib/logger'
 import { performanceMonitor } from '@lib/performance'
+
 import { QueryAnalyzer } from './queryAnalyzer'
 
 interface DatabaseConfig {

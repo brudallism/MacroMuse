@@ -1,12 +1,11 @@
 // ui/molecules/DayColumn.tsx - Single day column for meal planning
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity } from 'react-native'
+
 import { Card } from '../atoms/Card'
 import { Text } from '../atoms/Text'
 import { Button } from '../atoms/Button'
 import { Icon } from '../atoms/Icon'
-import { MacroRing } from './MacroRing'
-import { PlannedMealCard } from './PlannedMealCard'
 import {
   DayMealPlan,
   PlannedMeal,
@@ -14,6 +13,9 @@ import {
   TargetVector
 } from '../../domain/models'
 import { useTheme } from '../theme/ThemeProvider'
+
+import { MacroRing } from './MacroRing'
+import { PlannedMealCard } from './PlannedMealCard'
 
 interface DayColumnProps {
   day: DayMealPlan

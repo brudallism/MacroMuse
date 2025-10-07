@@ -1,6 +1,7 @@
 // ui/molecules/RecipeNutritionSummary.tsx - Recipe nutrition display component
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
+
 import { Card } from '../atoms/Card'
 import { Text } from '../atoms/Text'
 import { LoadingSpinner } from '../atoms/LoadingSpinner'

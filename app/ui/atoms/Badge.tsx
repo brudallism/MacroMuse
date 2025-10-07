@@ -1,7 +1,9 @@
 import React from 'react'
 import { View, StyleSheet, ViewStyle } from 'react-native'
-import { Text } from './Text'
+
 import { useTheme } from '@ui/theme/ThemeProvider'
+
+import { Text } from './Text'
 
 export interface BadgeProps {
   text: string

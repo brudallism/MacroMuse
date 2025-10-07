@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
+
 import { Text } from '@ui/atoms/Text'
 import { VirtualizedFoodList } from '@ui/components/VirtualizedFoodList'
 import { useTheme } from '@ui/theme/ThemeProvider'

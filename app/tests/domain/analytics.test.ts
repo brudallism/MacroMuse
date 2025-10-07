@@ -4,6 +4,7 @@ import { InsightEngine } from '@domain/services/insights'
 import { TrendAnalysisEngine } from '@domain/services/trends'
 import { TargetsServiceImpl } from '@domain/services/targets'
 import { NutrientVector, TargetVector, Insight } from '@domain/models'
+
 import { PERFORMANCE_BUDGETS } from '@lib/performance'
 
 describe('Analytics System - Days 8-9 Implementation', () => {

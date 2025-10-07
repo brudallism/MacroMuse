@@ -1,6 +1,7 @@
 // lib/offlineManager.ts - Offline mode with sync queue processing
 import NetInfo from '@react-native-community/netinfo'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+
 import { logger } from './logger'
 import { eventBus } from './eventBus'
 import { performanceMonitor } from './performance'

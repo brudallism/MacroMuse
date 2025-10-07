@@ -1,5 +1,6 @@
 // domain/services/suggestions.ts - Intelligent food suggestions following Foundation.md
 import { NutrientVector, TargetVector, FoodItem } from '@domain/models'
+
 import { trackOperation } from '@lib/performance'
 
 export interface SuggestionService {

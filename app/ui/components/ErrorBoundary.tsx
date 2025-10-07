@@ -1,6 +1,7 @@
 // ui/components/ErrorBoundary.tsx - Global error boundary with user-friendly messaging
 import React, { Component, ReactNode } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+
 import { logger } from '@lib/logger'
 import { eventBus } from '@lib/eventBus'
 import { performanceMonitor } from '@lib/performance'

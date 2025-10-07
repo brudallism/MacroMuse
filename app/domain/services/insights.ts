@@ -1,5 +1,6 @@
 // domain/services/insights.ts - Pattern detection rule engine following Foundation.md
 import { Insight, NutrientVector } from '@domain/models'
+
 import { AnalyticsData, AnalyticsEngine } from './analytics'
 
 export interface InsightRuleEngine {

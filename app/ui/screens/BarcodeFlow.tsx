@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { View, StyleSheet, Alert } from 'react-native'
+import { barcodeFacade } from '@facades/barcodeFacade'
+import { searchFacade } from '@facades/searchFacade'
+
 import { BarcodeScanner } from '@ui/components/BarcodeScanner'
 import { BarcodeConfirmation } from '@ui/components/BarcodeConfirmation'
 import { Button } from '@ui/atoms/Button'
@@ -7,8 +10,6 @@ import { Card } from '@ui/atoms/Card'
 import { Text } from '@ui/atoms/Text'
 import { LoadingSpinner } from '@ui/atoms/LoadingSpinner'
 import { useTheme } from '@ui/theme/ThemeProvider'
-import { barcodeFacade } from '@facades/barcodeFacade'
-import { searchFacade } from '@facades/searchFacade'
 // Inline interfaces to avoid domain/infra imports
 interface BarcodeProduct {
   barcode: string

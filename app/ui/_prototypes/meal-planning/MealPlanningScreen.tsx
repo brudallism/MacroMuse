@@ -1,6 +1,7 @@
 // ui/screens/MealPlanningScreen.tsx - Weekly meal planning interface
 import React, { useState, useCallback, useEffect } from 'react'
 import { View, ScrollView, StyleSheet, Alert } from 'react-native'
+
 import { Text } from '../atoms/Text'
 import { Button } from '../atoms/Button'
 import { LoadingSpinner } from '../atoms/LoadingSpinner'

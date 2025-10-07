@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, Alert, TextInput } from 'react-native'
+
 import { Text } from '@ui/atoms/Text'
 import { Button } from '@ui/atoms/Button'
 import { useTheme } from '@ui/theme/ThemeProvider'
+
 import { logger } from '@lib/logger'
 
 interface BarcodeInputProps {

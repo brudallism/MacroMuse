@@ -1,4 +1,5 @@
 import { NutrientVector } from '@domain/models'
+
 import { eventBus } from '@lib/eventBus'
 import { logger } from '@lib/logger'
 

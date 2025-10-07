@@ -1,7 +1,9 @@
 #!/usr/bin/env tsx
 
 import { performance } from 'perf_hooks'
+
 import { createClient } from '@supabase/supabase-js'
+
 import { PERFORMANCE_BUDGETS } from '../app/lib/performance'
 
 interface ValidationReport {

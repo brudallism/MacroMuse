@@ -1,5 +1,6 @@
 // lib/monitoring.ts - Sentry integration with proper fingerprints and context
 import * as Sentry from '@sentry/react-native'
+
 import { logger } from './logger'
 import { eventBus } from './eventBus'
 import { performanceMonitor } from './performance'

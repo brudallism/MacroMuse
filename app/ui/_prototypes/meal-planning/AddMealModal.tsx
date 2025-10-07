@@ -8,15 +8,17 @@ import {
   TouchableOpacity,
   TextInput as RNTextInput
 } from 'react-native'
+
 import { Card } from '../atoms/Card'
 import { Text } from '../atoms/Text'
 import { Button } from '../atoms/Button'
 import { Icon } from '../atoms/Icon'
 import { LoadingSpinner } from '../atoms/LoadingSpinner'
-import { TabView } from './TabView'
-import { FoodCard } from './FoodCard'
 import { RecipeData, FoodItem } from '../../domain/models'
 import { useTheme } from '../theme/ThemeProvider'
+
+import { TabView } from './TabView'
+import { FoodCard } from './FoodCard'
 
 interface AddMealModalProps {
   visible: boolean

@@ -1,4 +1,5 @@
-import { NutrientVector, FoodItem } from '@domain/models'
+import { NutrientVector, FoodItem, Recipe } from '@domain/models'
+
 import { logger } from '@lib/logger'
 
 export interface PortionCalculatorService {
@@ -6,6 +7,8 @@ export interface PortionCalculatorService {
   getCommonServingSizes(foodType: string): ServingSize[]
   convertUnits(amount: number, fromUnit: string, toUnit: string): number | null
   suggestServingSizes(food: FoodItem): ServingSize[]
+  suggestRecipePortions(recipe: Recipe): RecipeServingSize[]
+  calculateRecipeNutrients(recipe: Recipe, portionAmount: number, portionUnit: string): NutrientVector
   calculateCaloriesFromMacros(protein: number, carbs: number, fat: number): number
 }
 
@@ -15,6 +18,15 @@ export interface ServingSize {
   unit: string
   category: 'metric' | 'imperial' | 'common'
   description?: string
+}
+
+export interface RecipeServingSize {
+  label: string
+  amount: number
+  unit: string
+  category: 'servings' | 'weight'
+  description?: string
+  nutrients?: NutrientVector
 }
 
 // Common serving sizes by food category
@@ -226,7 +238,7 @@ export class PortionCalculatorServiceImpl implements PortionCalculatorService {
       const foodType = this.categorizeFoodType(food)
 
       // Get common serving sizes for this food type
-      let suggestions = this.getCommonServingSizes(foodType)
+      const suggestions = this.getCommonServingSizes(foodType)
 
       // Add the food's original serving size if it's not already included
       const originalServing: ServingSize = {
@@ -339,6 +351,151 @@ export class PortionCalculatorServiceImpl implements PortionCalculatorService {
 
   flOzToMl(flOz: number): number {
     return Math.round((flOz * 29.57) * 100) / 100
+  }
+
+  suggestRecipePortions(recipe: Recipe): RecipeServingSize[] {
+    try {
+      const portions: RecipeServingSize[] = []
+
+      // Serving-based portions
+      portions.push({
+        label: '1 serving',
+        amount: 1,
+        unit: 'serving',
+        category: 'servings',
+        description: `1 of ${recipe.servings} servings`
+      })
+
+      if (recipe.servings > 1) {
+        portions.push({
+          label: '0.5 serving',
+          amount: 0.5,
+          unit: 'serving',
+          category: 'servings',
+          description: 'Half serving'
+        })
+      }
+
+      if (recipe.servings >= 2) {
+        portions.push({
+          label: '2 servings',
+          amount: 2,
+          unit: 'serving',
+          category: 'servings',
+          description: 'Double serving'
+        })
+      }
+
+      // Weight-based portions (if weightPerServing is available)
+      if (recipe.weightPerServing) {
+        const weightPerServing = recipe.weightPerServing.amount
+        const unit = recipe.weightPerServing.unit
+
+        // Convert to grams if needed
+        const gramsPerServing = unit === 'g' ? weightPerServing : weightPerServing * 1000
+
+        portions.push({
+          label: `${Math.round(gramsPerServing)}g`,
+          amount: gramsPerServing,
+          unit: 'g',
+          category: 'weight',
+          description: '1 serving by weight'
+        })
+
+        portions.push({
+          label: `${Math.round(gramsPerServing / 2)}g`,
+          amount: Math.round(gramsPerServing / 2),
+          unit: 'g',
+          category: 'weight',
+          description: '0.5 serving by weight'
+        })
+
+        // Add ounce equivalents
+        const ouncesPerServing = this.gramsToOunces(gramsPerServing)
+        portions.push({
+          label: `${Math.round(ouncesPerServing)}oz`,
+          amount: Math.round(ouncesPerServing),
+          unit: 'oz',
+          category: 'weight',
+          description: '1 serving by weight'
+        })
+
+        // Common weight portions
+        portions.push(
+          { label: '50g', amount: 50, unit: 'g', category: 'weight' },
+          { label: '100g', amount: 100, unit: 'g', category: 'weight' },
+          { label: '150g', amount: 150, unit: 'g', category: 'weight' },
+          { label: '200g', amount: 200, unit: 'g', category: 'weight' },
+          { label: '2oz', amount: 2, unit: 'oz', category: 'weight' },
+          { label: '4oz', amount: 4, unit: 'oz', category: 'weight' },
+          { label: '6oz', amount: 6, unit: 'oz', category: 'weight' },
+          { label: '8oz', amount: 8, unit: 'oz', category: 'weight' }
+        )
+      }
+
+      return portions
+
+    } catch (error) {
+      logger.error('Failed to suggest recipe portions', { recipeId: recipe.id, error })
+      // Return default servings if error
+      return [
+        { label: '1 serving', amount: 1, unit: 'serving', category: 'servings' },
+        { label: '0.5 serving', amount: 0.5, unit: 'serving', category: 'servings' }
+      ]
+    }
+  }
+
+  calculateRecipeNutrients(recipe: Recipe, portionAmount: number, portionUnit: string): NutrientVector {
+    try {
+      if (!recipe.nutrients) {
+        logger.warn('Recipe has no nutrients data', { recipeId: recipe.id })
+        return {}
+      }
+
+      let ratio = 1
+
+      if (portionUnit === 'serving') {
+        // Portion is in servings (e.g., 1 serving, 0.5 serving, 2 servings)
+        // Nutrients are already per-serving from Spoonacular
+        ratio = portionAmount
+      } else {
+        // Portion is by weight (e.g., 150g, 6oz)
+        // Need to calculate ratio based on weightPerServing
+        if (!recipe.weightPerServing) {
+          logger.warn('Recipe has no weightPerServing data, cannot calculate weight-based portion', { recipeId: recipe.id })
+          // Default to 1 serving
+          ratio = 1
+        } else {
+          // Convert both to grams for comparison
+          const weightPerServing = recipe.weightPerServing.unit === 'g'
+            ? recipe.weightPerServing.amount
+            : recipe.weightPerServing.amount * 1000
+
+          const portionInGrams = portionUnit === 'g'
+            ? portionAmount
+            : portionUnit === 'oz'
+            ? this.ouncesToGrams(portionAmount)
+            : weightPerServing // fallback
+
+          ratio = portionInGrams / weightPerServing
+        }
+      }
+
+      // Scale nutrients by ratio
+      const scaledNutrients: Partial<NutrientVector> = {}
+
+      Object.entries(recipe.nutrients).forEach(([key, value]) => {
+        if (typeof value === 'number') {
+          scaledNutrients[key as keyof NutrientVector] = Math.round((value * ratio) * 100) / 100
+        }
+      })
+
+      return scaledNutrients as NutrientVector
+
+    } catch (error) {
+      logger.error('Failed to calculate recipe nutrients', { recipeId: recipe.id, portionAmount, portionUnit, error })
+      return recipe.nutrients || {}
+    }
   }
 }
 

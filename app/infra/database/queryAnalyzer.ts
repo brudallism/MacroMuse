@@ -1,5 +1,6 @@
 // infra/database/queryAnalyzer.ts - Database query optimization and analysis
 import { createClient } from '@supabase/supabase-js'
+
 import { logger } from '@lib/logger'
 import { performanceMonitor, PERFORMANCE_BUDGETS } from '@lib/performance'
 

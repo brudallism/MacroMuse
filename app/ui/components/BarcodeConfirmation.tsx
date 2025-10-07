@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native'
+
 import { Button } from '@ui/atoms/Button'
 import { Card } from '@ui/atoms/Card'
 import { TextInput } from '@ui/atoms/TextInput'
-import { BarcodeNutritionDisplay } from './BarcodeNutritionDisplay'
 import { useTheme } from '@ui/theme/ThemeProvider'
+
+import { BarcodeNutritionDisplay } from './BarcodeNutritionDisplay'
 
 // Inline interfaces to avoid domain/infra imports
 interface BarcodeProduct {

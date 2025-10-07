@@ -59,6 +59,8 @@ export type LogEntry = {
   nutrients: NutrientVector
   mealLabel?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
   recipeId?: string
+  itemType?: 'food' | 'recipe' // Distinguish between food items and recipes
+  name?: string // For display purposes
 }
 
 export type Insight = {
@@ -162,12 +164,30 @@ export type RecentFoodEntry = {
   userId: string
 }
 
+export type RecentRecipeEntry = {
+  recipe: Recipe
+  lastUsed: string
+  usageCount: number
+  userId: string
+}
+
+export type RecentEntry = RecentFoodEntry | RecentRecipeEntry
+
 export type FavoriteFood = {
   food: FoodItem
   addedAt: string
   userId: string
   category?: string
 }
+
+export type FavoriteRecipe = {
+  recipe: Recipe
+  addedAt: string
+  userId: string
+  category?: string
+}
+
+export type Favorite = FavoriteFood | FavoriteRecipe
 
 export type CustomFood = {
   id: string
@@ -229,6 +249,73 @@ export type RecipeStep = {
   order: number
   instruction: string
   duration?: number
+}
+
+// Recipe Search & Logging Types (for Spoonacular recipes)
+export type Recipe = {
+  // Basic Info
+  id: string
+  name: string
+  image?: string
+  source: 'spoonacular' | 'custom'
+  sourceId?: string
+
+  // Timing
+  servings: number
+  readyInMinutes?: number
+  preparationMinutes?: number
+  cookingMinutes?: number
+
+  // Preview Metrics (for card display)
+  healthScore?: number
+  pricePerServing?: number
+  aggregateLikes?: number
+
+  // Dietary Tags (for card badges)
+  diets?: string[]
+  vegan?: boolean
+  vegetarian?: boolean
+  glutenFree?: boolean
+  dairyFree?: boolean
+  veryHealthy?: boolean
+  cheap?: boolean
+  veryPopular?: boolean
+  sustainable?: boolean
+  lowFodmap?: boolean
+  ketogenic?: boolean
+
+  // Classification
+  dishTypes?: string[]
+  cuisines?: string[]
+
+  // Preview Content (for card description)
+  summary?: string
+
+  // Nutrition (lazy-loaded when user views details)
+  nutrients?: NutrientVector
+  weightPerServing?: { amount: number; unit: string }
+
+  // Full content (lazy-loaded when user views details)
+  ingredients?: Array<{
+    id: string
+    name: string
+    amount: number
+    unit: string
+    original?: string
+  }>
+  instructions?: string
+  analyzedInstructions?: Array<{
+    name: string
+    steps: Array<{
+      number: number
+      step: string
+    }>
+  }>
+
+  // Metadata
+  lastUsed?: string
+  usageCount?: number
+  isFavorite?: boolean
 }
 
 // Meal Planning Types

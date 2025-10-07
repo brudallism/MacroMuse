@@ -1,9 +1,11 @@
 // infra/jobs/analyticsRollup.ts - Idempotent analytics rollup jobs following Foundation.md
+import { SupabaseClient } from '@supabase/supabase-js'
+
+import { NutrientVector } from '@domain/models'
+
 import { trackOperation } from '@lib/performance'
 import { eventBus } from '@lib/eventBus'
 import { logger } from '@lib/logger'
-import { NutrientVector } from '@domain/models'
-import { SupabaseClient } from '@supabase/supabase-js'
 
 export interface AnalyticsRollupJob {
   runDailyRollup(userId: string, date: string): Promise<void>

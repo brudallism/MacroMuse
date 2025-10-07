@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, Alert } from 'react-native'
 import { WebView } from 'react-native-webview'
+
 import { Text } from '@ui/atoms/Text'
 import { Button } from '@ui/atoms/Button'
 import { useTheme } from '@ui/theme/ThemeProvider'
+
 import { logger } from '@lib/logger'
 
 interface WebBarcodeScannerProps {

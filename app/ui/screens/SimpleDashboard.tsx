@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
+
 import { Text } from '@ui/atoms/Text'
 import { Card } from '@ui/atoms/Card'
 import { useTheme } from '@ui/theme/ThemeProvider'

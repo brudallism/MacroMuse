@@ -1,4 +1,5 @@
 import { performance } from 'perf_hooks'
+
 import { PERFORMANCE_BUDGETS } from '../../lib/performance'
 import { searchFacade } from '../../facades/SearchFacade'
 import { analyticsService } from '../../domain/services/analytics'

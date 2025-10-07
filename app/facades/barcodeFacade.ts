@@ -1,9 +1,13 @@
 import { LogEntry, FoodSearchResult } from '@domain/models'
+
 import { BarcodeAdapter, BarcodeProduct } from '@infra/adapters/barcode'
+
 import { useDataStore } from '@state/dataStore'
+
 import { eventBus } from '@lib/eventBus'
 import { logger } from '@lib/logger'
 import { trackOperation } from '@lib/performance'
+
 import { searchFacade } from './searchFacade'
 
 interface BarcodeFacadeConfig {

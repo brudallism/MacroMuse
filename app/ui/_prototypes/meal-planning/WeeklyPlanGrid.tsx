@@ -1,6 +1,7 @@
 // ui/organisms/WeeklyPlanGrid.tsx - Weekly meal planning grid with drag & drop
 import React, { useState } from 'react'
 import { View, ScrollView, StyleSheet, Dimensions } from 'react-native'
+
 import { DayColumn } from '../molecules/DayColumn'
 import { AddMealModal } from '../molecules/AddMealModal'
 import {

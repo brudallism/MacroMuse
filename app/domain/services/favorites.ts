@@ -1,59 +1,39 @@
-import { FoodItem, FavoriteFood } from '@domain/models'
-import { supabase } from '@infra/database/supabase'
+import { FoodItem, FavoriteFood, Recipe, FavoriteRecipe, Favorite } from '@domain/models'
+
+import { FavoritesRepository } from '@infra/repositories/FavoritesRepository'
+
 import { eventBus } from '@lib/eventBus'
 import { logger } from '@lib/logger'
 
 export interface FavoritesService {
   getFavorites(userId: string, category?: string): Promise<FoodItem[]>
+  getFavoriteRecipes(userId: string, category?: string): Promise<Recipe[]>
+  getFavoritesAll(userId: string, category?: string): Promise<(FoodItem | Recipe)[]>
   addToFavorites(userId: string, food: FoodItem, category?: string): Promise<void>
+  addRecipeToFavorites(userId: string, recipe: Recipe, category?: string): Promise<void>
   removeFromFavorites(userId: string, foodId: string): Promise<void>
+  removeRecipeFromFavorites(userId: string, recipeId: string): Promise<void>
   isFavorite(userId: string, foodId: string): Promise<boolean>
+  isRecipeFavorite(userId: string, recipeId: string): Promise<boolean>
   getFavoriteCategories(userId: string): Promise<string[]>
   updateFavoriteCategory(userId: string, foodId: string, category: string): Promise<void>
+  updateRecipeFavoriteCategory(userId: string, recipeId: string, category: string): Promise<void>
 }
-
-const FAVORITES_TABLE = 'user_favorites'
 
 export class FavoritesServiceImpl implements FavoritesService {
   private cache = new Map<string, FavoriteFood[]>()
+  private recipeCache = new Map<string, FavoriteRecipe[]>()
   private favoriteIds = new Map<string, Set<string>>()
+  private favoriteRecipeIds = new Map<string, Set<string>>()
+
+  constructor(private repository: FavoritesRepository) {}
 
   async getFavorites(userId: string, category?: string): Promise<FoodItem[]> {
     try {
       let favorites = this.cache.get(userId)
 
       if (!favorites) {
-        const { data, error } = await supabase
-          .from(FAVORITES_TABLE)
-          .select('*')
-          .eq('user_id', userId)
-          .order('added_at', { ascending: false })
-
-        if (error) {
-          throw new Error(`Failed to fetch favorites: ${error.message}`)
-        }
-
-        favorites = (data || []).map(row => ({
-          food: {
-            id: row.food_id,
-            name: row.food_name,
-            brand: row.food_brand,
-            source: row.food_source,
-            nutrients: row.food_nutrients,
-            servingSize: row.food_serving_size,
-            lastUsed: row.last_used,
-            usageCount: row.usage_count,
-            isFavorite: true,
-            isCustom: row.food_source === 'custom',
-            createdBy: row.food_created_by,
-            ingredients: row.food_ingredients,
-            allergens: row.food_allergens
-          },
-          addedAt: row.added_at,
-          userId: row.user_id,
-          category: row.category
-        }))
-
+        favorites = await this.repository.getFavorites(userId)
         this.cache.set(userId, favorites)
         this.favoriteIds.set(userId, new Set(favorites.map(f => f.food.id)))
       }
@@ -79,38 +59,13 @@ export class FavoritesServiceImpl implements FavoritesService {
         return
       }
 
-      const now = new Date().toISOString()
-
-      const favoriteData = {
-        user_id: userId,
-        food_id: food.id,
-        food_name: food.name,
-        food_brand: food.brand,
-        food_source: food.source,
-        food_nutrients: food.nutrients,
-        food_serving_size: food.servingSize,
-        food_ingredients: food.ingredients,
-        food_allergens: food.allergens,
-        food_created_by: food.createdBy,
-        last_used: food.lastUsed,
-        usage_count: food.usageCount || 0,
-        category: category || 'general',
-        added_at: now
-      }
-
-      const { error } = await supabase
-        .from(FAVORITES_TABLE)
-        .insert([favoriteData])
-
-      if (error) {
-        throw new Error(`Failed to add favorite: ${error.message}`)
-      }
+      await this.repository.addFavorite(userId, food, category)
 
       // Update cache
       const favorites = this.cache.get(userId) || []
       const newFavorite: FavoriteFood = {
         food: { ...food, isFavorite: true },
-        addedAt: now,
+        addedAt: new Date().toISOString(),
         userId,
         category: category || 'general'
       }
@@ -144,15 +99,7 @@ export class FavoritesServiceImpl implements FavoritesService {
 
   async removeFromFavorites(userId: string, foodId: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from(FAVORITES_TABLE)
-        .delete()
-        .eq('user_id', userId)
-        .eq('food_id', foodId)
-
-      if (error) {
-        throw new Error(`Failed to remove favorite: ${error.message}`)
-      }
+      await this.repository.removeFavorite(userId, foodId)
 
       // Update cache
       const favorites = this.cache.get(userId) || []
@@ -199,17 +146,8 @@ export class FavoritesServiceImpl implements FavoritesService {
 
   async getFavoriteCategories(userId: string): Promise<string[]> {
     try {
-      const { data, error } = await supabase
-        .from(FAVORITES_TABLE)
-        .select('category')
-        .eq('user_id', userId)
-
-      if (error) {
-        throw new Error(`Failed to fetch favorite categories: ${error.message}`)
-      }
-
-      const categories = [...new Set((data || []).map(row => row.category).filter(Boolean))]
-      return categories.sort()
+      const categories = await this.repository.getFavoriteCategories(userId)
+      return categories.length > 0 ? categories : ['general']
 
     } catch (error) {
       logger.error('Failed to get favorite categories', { userId, error })
@@ -219,15 +157,7 @@ export class FavoritesServiceImpl implements FavoritesService {
 
   async updateFavoriteCategory(userId: string, foodId: string, category: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from(FAVORITES_TABLE)
-        .update({ category })
-        .eq('user_id', userId)
-        .eq('food_id', foodId)
-
-      if (error) {
-        throw new Error(`Failed to update favorite category: ${error.message}`)
-      }
+      await this.repository.updateFavoriteCategory(userId, foodId, category)
 
       // Update cache
       const favorites = this.cache.get(userId) || []
@@ -248,34 +178,179 @@ export class FavoritesServiceImpl implements FavoritesService {
     }
   }
 
+  async getFavoriteRecipes(userId: string, category?: string): Promise<Recipe[]> {
+    try {
+      let favorites = this.recipeCache.get(userId)
+
+      if (!favorites) {
+        favorites = await this.repository.getRecipeFavorites(userId)
+        this.recipeCache.set(userId, favorites)
+        this.favoriteRecipeIds.set(userId, new Set(favorites.map(f => f.recipe.id)))
+      }
+
+      // Filter by category if specified
+      const filteredFavorites = category
+        ? favorites.filter(fav => fav.category === category)
+        : favorites
+
+      return filteredFavorites.map(fav => fav.recipe)
+
+    } catch (error) {
+      logger.error('Failed to get favorite recipes', { userId, category, error })
+      return []
+    }
+  }
+
+  async getFavoritesAll(userId: string, category?: string): Promise<(FoodItem | Recipe)[]> {
+    try {
+      const foods = await this.getFavorites(userId, category)
+      const recipes = await this.getFavoriteRecipes(userId, category)
+
+      // Combine and sort by added date
+      const combined: Array<{ item: FoodItem | Recipe; addedAt: string }> = [
+        ...foods.map(food => ({
+          item: food,
+          addedAt: this.cache.get(userId)?.find(f => f.food.id === food.id)?.addedAt || new Date().toISOString()
+        })),
+        ...recipes.map(recipe => ({
+          item: recipe,
+          addedAt: this.recipeCache.get(userId)?.find(f => f.recipe.id === recipe.id)?.addedAt || new Date().toISOString()
+        }))
+      ]
+
+      // Sort by most recently added
+      const sorted = combined.sort((a, b) =>
+        new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
+      )
+
+      return sorted.map(entry => entry.item)
+
+    } catch (error) {
+      logger.error('Failed to get all favorites', { userId, category, error })
+      return []
+    }
+  }
+
+  async addRecipeToFavorites(userId: string, recipe: Recipe, category?: string): Promise<void> {
+    try {
+      // Check if already favorited
+      if (await this.isRecipeFavorite(userId, recipe.id)) {
+        logger.debug('Recipe already in favorites', { userId, recipeId: recipe.id })
+        return
+      }
+
+      await this.repository.addRecipeFavorite(userId, recipe, category)
+
+      // Update cache
+      const favorites = this.recipeCache.get(userId) || []
+      const newFavorite: FavoriteRecipe = {
+        recipe: { ...recipe, isFavorite: true },
+        addedAt: new Date().toISOString(),
+        userId,
+        category: category || 'general'
+      }
+      favorites.unshift(newFavorite)
+      this.recipeCache.set(userId, favorites)
+
+      // Update favorite IDs set
+      const favoriteIdSet = this.favoriteRecipeIds.get(userId) || new Set()
+      favoriteIdSet.add(recipe.id)
+      this.favoriteRecipeIds.set(userId, favoriteIdSet)
+
+      // Emit event
+      eventBus.emit('food_data_cached', {
+        foodId: recipe.id,
+        source: 'recipe_favorites_added',
+        cacheSize: favorites.length
+      })
+
+      logger.info('Added recipe to favorites', {
+        userId,
+        recipeId: recipe.id,
+        recipeName: recipe.name,
+        category: category || 'general'
+      })
+
+    } catch (error) {
+      logger.error('Failed to add recipe to favorites', { userId, recipeId: recipe.id, error })
+      throw error
+    }
+  }
+
+  async removeRecipeFromFavorites(userId: string, recipeId: string): Promise<void> {
+    try {
+      await this.repository.removeRecipeFavorite(userId, recipeId)
+
+      // Update cache
+      const favorites = this.recipeCache.get(userId) || []
+      const updatedFavorites = favorites.filter(fav => fav.recipe.id !== recipeId)
+      this.recipeCache.set(userId, updatedFavorites)
+
+      // Update favorite IDs set
+      const favoriteIdSet = this.favoriteRecipeIds.get(userId) || new Set()
+      favoriteIdSet.delete(recipeId)
+      this.favoriteRecipeIds.set(userId, favoriteIdSet)
+
+      // Emit event
+      eventBus.emit('food_data_cached', {
+        foodId: recipeId,
+        source: 'recipe_favorites_removed',
+        cacheSize: updatedFavorites.length
+      })
+
+      logger.info('Removed recipe from favorites', { userId, recipeId })
+
+    } catch (error) {
+      logger.error('Failed to remove recipe from favorites', { userId, recipeId, error })
+      throw error
+    }
+  }
+
+  async isRecipeFavorite(userId: string, recipeId: string): Promise<boolean> {
+    try {
+      let favoriteIdSet = this.favoriteRecipeIds.get(userId)
+
+      if (!favoriteIdSet) {
+        // Load favorites to populate cache
+        await this.getFavoriteRecipes(userId)
+        favoriteIdSet = this.favoriteRecipeIds.get(userId) || new Set()
+      }
+
+      return favoriteIdSet.has(recipeId)
+
+    } catch (error) {
+      logger.error('Failed to check if recipe is favorite', { userId, recipeId, error })
+      return false
+    }
+  }
+
+  async updateRecipeFavoriteCategory(userId: string, recipeId: string, category: string): Promise<void> {
+    try {
+      await this.repository.updateRecipeFavoriteCategory(userId, recipeId, category)
+
+      // Update cache
+      const favorites = this.recipeCache.get(userId) || []
+      const favoriteIndex = favorites.findIndex(fav => fav.recipe.id === recipeId)
+      if (favoriteIndex >= 0) {
+        favorites[favoriteIndex] = {
+          ...favorites[favoriteIndex],
+          category
+        }
+        this.recipeCache.set(userId, favorites)
+      }
+
+      logger.info('Updated recipe favorite category', { userId, recipeId, category })
+
+    } catch (error) {
+      logger.error('Failed to update recipe favorite category', { userId, recipeId, category, error })
+      throw error
+    }
+  }
+
   // Bulk operations for efficiency
   async addMultipleToFavorites(userId: string, foods: FoodItem[], category?: string): Promise<void> {
     try {
-      const now = new Date().toISOString()
-      const favoriteDataArray = foods.map(food => ({
-        user_id: userId,
-        food_id: food.id,
-        food_name: food.name,
-        food_brand: food.brand,
-        food_source: food.source,
-        food_nutrients: food.nutrients,
-        food_serving_size: food.servingSize,
-        food_ingredients: food.ingredients,
-        food_allergens: food.allergens,
-        food_created_by: food.createdBy,
-        last_used: food.lastUsed,
-        usage_count: food.usageCount || 0,
-        category: category || 'general',
-        added_at: now
-      }))
-
-      const { error } = await supabase
-        .from(FAVORITES_TABLE)
-        .insert(favoriteDataArray)
-
-      if (error) {
-        throw new Error(`Failed to add multiple favorites: ${error.message}`)
-      }
+      await this.repository.addMultipleFavorites(userId, foods, category)
 
       // Clear cache to force reload
       this.cache.delete(userId)
@@ -297,10 +372,14 @@ export class FavoritesServiceImpl implements FavoritesService {
   clearCache(userId?: string): void {
     if (userId) {
       this.cache.delete(userId)
+      this.recipeCache.delete(userId)
       this.favoriteIds.delete(userId)
+      this.favoriteRecipeIds.delete(userId)
     } else {
       this.cache.clear()
+      this.recipeCache.clear()
       this.favoriteIds.clear()
+      this.favoriteRecipeIds.clear()
     }
     logger.debug('Favorites cache cleared', { userId })
   }
@@ -319,5 +398,10 @@ export class FavoritesServiceImpl implements FavoritesService {
   }
 }
 
-// Singleton instance
-export const favoritesService = new FavoritesServiceImpl()
+// Singleton instance - will be initialized with repository in app setup
+// For now, this is a placeholder that will be replaced when the app initializes
+export let favoritesService: FavoritesService
+
+export function initializeFavoritesService(repository: FavoritesRepository): void {
+  favoritesService = new FavoritesServiceImpl(repository)
+}

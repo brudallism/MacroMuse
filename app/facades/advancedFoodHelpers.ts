@@ -1,6 +1,7 @@
 import { FoodItem, LogEntry, MealType, NutrientVector } from '@domain/models'
 import { portionCalculatorService, ServingSize } from '@domain/services/portionCalculator'
 import { mealCategorizationService, MealSuitability } from '@domain/services/mealCategorization'
+
 import { eventBus } from '@lib/eventBus'
 import { logger } from '@lib/logger'
 import { trackOperation } from '@lib/performance'

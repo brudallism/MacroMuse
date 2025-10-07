@@ -2,6 +2,7 @@
 // Critical Foundation.md requirement: Same component handles create/edit/display
 import React, { useState, useCallback, useEffect } from 'react'
 import { View, ScrollView, StyleSheet, Alert } from 'react-native'
+
 import { Button } from '../atoms/Button'
 import { Card } from '../atoms/Card'
 import { Text } from '../atoms/Text'

@@ -1,12 +1,14 @@
 // lib/analyticsEventWiring.ts - Event bus wiring for analytics following Foundation.md
-import { eventBus } from './eventBus'
-import { logger } from './logger'
-import { trackOperation } from './performance'
-import { AnalyticsRollupJobImpl } from '@infra/jobs/analyticsRollup'
 import { InsightEngine } from '@domain/services/insights'
 import { TrendAnalysisEngine } from '@domain/services/trends'
 import { TargetsServiceImpl } from '@domain/services/targets'
 import { AnalyticsData } from '@domain/services/analytics'
+
+import { AnalyticsRollupJobImpl } from '@infra/jobs/analyticsRollup'
+
+import { trackOperation } from './performance'
+import { logger } from './logger'
+import { eventBus } from './eventBus'
 
 export class AnalyticsEventWiring {
   constructor(
@@ -176,7 +178,7 @@ export class AnalyticsEventWiring {
 
   private async celebrateProgress(userId: string, nutrient: string, days: number, type: string): Promise<void> {
     let achievement = ''
-    let celebrationData: Record<string, unknown> = { nutrient, days, type }
+    const celebrationData: Record<string, unknown> = { nutrient, days, type }
 
     if (days >= 30) {
       achievement = `month_streak_${nutrient}`

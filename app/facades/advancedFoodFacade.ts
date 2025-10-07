@@ -4,6 +4,7 @@ import { favoritesService } from '@domain/services/favorites'
 import { customFoodsService, CustomFoodData } from '@domain/services/customFoods'
 import { portionCalculatorService, ServingSize } from '@domain/services/portionCalculator'
 import { mealCategorizationService, MealSuitability } from '@domain/services/mealCategorization'
+
 import { eventBus } from '@lib/eventBus'
 import { logger } from '@lib/logger'
 import { trackOperation } from '@lib/performance'
